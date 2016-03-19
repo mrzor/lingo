@@ -21,7 +21,10 @@
        [([& modifiers] :seq)]
          (doseq [modifier modifiers]
            (modify! {:* modifier} object object-ref))
-       [{:complement complement}] (.addComplement object complement)
+       [{:complement complement}]
+            (if (string? complement)
+              (.addComplement object complement)
+              (.addComplement object (gen factory complement)))
        [{:> (:or :verb :noun :subject :object :clause)}]
          (if (instance? CoordinatedPhraseElement @object-ref)
            (.addCoordinate @object-ref (gen factory (:* phrase)))
@@ -71,6 +74,8 @@
         :subject (.setSubject clause (gen factory phrase))
         :verb    (.setVerb    clause (gen factory phrase))
         :object  (.setObject  clause (gen factory phrase))
+        ; XXX: this only accepts strings.
+        ;      one should use {:* [{:complement xxx}]} instead
         :complement (.addComplement clause (:+ phrase))))
     (modify phrases clause)))
 
