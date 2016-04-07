@@ -48,6 +48,8 @@
   (if (:* phrase) (modify! phrase object) object))
 (defmethod modify :clause [phrase object]
   (if (:* phrase) (modify! phrase object) object))
+(defmethod modify :prepophrase [phrase object]
+  (if (:* phrase) (modify! phrase object) object))
 
 (defn- noun [phrase factory]
   (match [phrase]
@@ -55,6 +57,11 @@
       (doto (.createNounPhrase factory noun)
         (.setDeterminer determiner))
     [noun] (.createNounPhrase factory noun)))
+
+(defn- prepophrase [phrase factory]
+  (match [phrase]
+    [[preposition complement]] (.createPrepositionPhrase factory preposition complement)
+    [preposition] (.createPrepositionPhrase factory preposition)))
 
 (defmulti gen (fn [factory phrase] (:> phrase)))
 (defmethod gen :default [factory phrase] phrase)
@@ -66,6 +73,8 @@
   (gen factory (assoc phrase :> :noun)))
 (defmethod gen :object  [factory phrase]
   (gen factory (assoc phrase :> :noun)))
+(defmethod gen :prepophrase [factory phrase]
+  (modify phrase (prepophrase (:+ phrase) factory)))
 
 (defmethod gen :clause [factory phrases]
   (let [clause (.createClause factory)]
