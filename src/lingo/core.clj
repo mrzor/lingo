@@ -60,7 +60,10 @@
 
 (defn- prepophrase [phrase factory]
   (match [phrase]
-    [[preposition complement]] (.createPrepositionPhrase factory preposition complement)
+    [[preposition complement]] (.createPrepositionPhrase
+                                 factory
+                                 preposition
+                                 (gen factory complement))
     [preposition] (.createPrepositionPhrase factory preposition)))
 
 (defmulti gen (fn [factory phrase] (:> phrase)))
