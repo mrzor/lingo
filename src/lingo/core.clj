@@ -1,6 +1,7 @@
 (ns lingo.core
   (:use [lingo.features :only [feature]]
         [clojure.core.match :only [match]])
+  (:require [lingo.simplenlg-wrapper :as snlg])
   (:import (simplenlg.framework NLGFactory CoordinatedPhraseElement)
            (simplenlg.lexicon Lexicon XMLLexicon)
            (simplenlg.realiser.english Realiser)))
@@ -15,29 +16,27 @@
   ([phrase object object-ref]
    (let [factory (.getFactory object)]
      (match [(:* phrase)]
-       [[:pre modifier]]   (.addPreModifier   object modifier)
-       [[:front modifier]] (.addFrontModifier object modifier)
-       [[:post  modifier]] (.addPostModifier  object modifier)
+       [[:pre modifier]]   (snlg/element-add-pre-modifier object modifier)
+       [[:front modifier]] (snlg/element-add-front-modifier object modifier)
+       [[:post  modifier]] (snlg/element-add-post-modifier object modifier)
        [([& modifiers] :seq)]
          (doseq [modifier modifiers]
            (modify! {:* modifier} object object-ref))
        [{:complement complement}]
-            (if (string? complement)
-              (.addComplement object complement)
-              (.addComplement object (gen factory complement)))
+         (snlg/element-add-complement object (gen factory complement))
        [{:> (:or :verb :noun :subject :object :clause)}]
          (if (instance? CoordinatedPhraseElement @object-ref)
-           (.addCoordinate @object-ref (gen factory (:* phrase)))
+           (snlg/element-add-coordinate @object-ref (gen factory (:* phrase)))
            (let [cont (gen factory (:* phrase))
-                 phrase (.createCoordinatedPhrase factory object cont)]
+                 phrase (snlg/factory-create-coordinated-phrase factory object cont)]
              (reset! object-ref phrase)))
        [{:feature [kind ident]}]
          (let [[feature spec] (feature kind ident)]
-           (.setFeature @object-ref feature spec))
+           (snlg/element-set-feature @object-ref feature spec))
        [:plural]
          (let [[feature spec] (feature :plural :numbers)]
-           (.setFeature @object-ref feature spec))
-       [modifier] (.addModifier object modifier))
+           (snlg/element-set-feature @object-ref feature spec))
+       [modifier] (snlg/element-add-modifier object modifier))
      @object-ref)))
 
 (defmulti modify (fn [phrase object] (:> phrase)))
@@ -53,25 +52,23 @@
 
 (defn- noun [phrase factory]
   (match [phrase]
-    [[determiner noun]]
-      (doto (.createNounPhrase factory noun)
-        (.setDeterminer determiner))
-    [noun] (.createNounPhrase factory noun)))
+    [[determiner noun]] (snlg/factory-create-noun-phrase factory determiner noun)
+    [noun] (snlg/factory-create-noun-phrase factory noun)))
 
 (defn- prepophrase [phrase factory]
   (match [phrase]
-    [[preposition complement]] (.createPrepositionPhrase
+    [[preposition complement]] (snlg/factory-create-preposition-phrase
                                  factory
                                  preposition
                                  (gen factory complement))
-    [preposition] (.createPrepositionPhrase factory preposition)))
+    [preposition] (snlg/factory-create-preposition-phrase factory preposition)))
 
 (defmulti gen (fn [factory phrase] (:> phrase)))
 (defmethod gen :default [factory phrase] phrase)
 (defmethod gen :noun    [factory phrase]
   (modify phrase (noun (:+ phrase) factory)))
 (defmethod gen :verb    [factory phrase]
-  (modify phrase (.createVerbPhrase factory (:+ phrase))))
+  (modify phrase (snlg/factory-create-verb-phrase factory (:+ phrase))))
 (defmethod gen :subject [factory phrase]
   (gen factory (assoc phrase :> :noun)))
 (defmethod gen :object  [factory phrase]
@@ -80,27 +77,26 @@
   (modify phrase (prepophrase (:+ phrase) factory)))
 
 (defmethod gen :clause [factory phrases]
-  (let [clause (.createClause factory)]
+  (let [clause (snlg/factory-create-clause factory)]
     (doseq [phrase (:+ phrases)]
       (condp = (:> phrase)
-        :subject (.setSubject clause (gen factory phrase))
-        :verb    (.setVerb    clause (gen factory phrase))
-        :object  (.setObject  clause (gen factory phrase))
-        ; XXX: this only accepts strings.
-        ;      one should use {:* [{:complement xxx}]} instead
-        :complement (.addComplement clause (:+ phrase))))
+        :subject (snlg/phrase-set-subject clause (gen factory phrase))
+        :verb    (snlg/phrase-set-verb    clause (gen factory phrase))
+        :object  (snlg/phrase-set-object  clause (gen factory phrase))
+        :complement (snlg/element-add-complement clause (gen factory (:+ phrase)))))
     (modify phrases clause)))
 
 (defmethod gen :generator [name lexicon]
   (let [factory (NLGFactory. (:+ lexicon))
-        realiser (Realiser.   (:+ lexicon))]
+        realiser (Realiser. (:+ lexicon))]
     {:> :generator
      :name name
      :factory factory
      :realiser realiser
      :lexicon (:+ lexicon)
      :* (partial gen factory)
-     :! #(.realiseSentence realiser (gen factory %))}))
+     :! #(snlg/realise-sentence realiser (gen factory %))
+     :!! #(snlg/realise-element realiser (gen factory %))}))
 
 (defn make-gen [& [lexicon- name]]
   (let [id (or name (str (java.util.UUID/randomUUID)))]
