@@ -81,7 +81,7 @@
     (doseq [phrase (:+ phrases)]
       (condp = (:> phrase)
         :subject (snlg/phrase-set-subject clause (gen factory phrase))
-        :verb    (snlg/phrase-set-verb    clause (gen factory phrase))
+        :verb    (snlg/phrase-set-verb-phrase clause (gen factory phrase))
         :object  (snlg/phrase-set-object  clause (gen factory phrase))
         :complement (snlg/element-add-complement clause (gen factory (:+ phrase)))))
     (modify phrases clause)))

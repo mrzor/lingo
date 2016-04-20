@@ -80,8 +80,8 @@
 (defn phrase-set-subject [phrase subject]
   (.setSubject phrase subject))
 
-(defn phrase-set-verb [phrase verb]
-  (.setVerb phrase verb))
+(defn phrase-set-verb-phrase [phrase verb]
+  (.setVerbPhrase phrase verb))
 
 (defn phrase-set-object [phrase object]
   (.setObject phrase object))
