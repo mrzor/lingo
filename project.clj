@@ -8,7 +8,7 @@
   :java-source-paths ["src/simplenlg"]
   :resource-paths ["lib/simplenlg-v4.4.2.jar"
                    "lib/junit-4.4.jar"
-                   "lib/lexAccess2011dist.jar"
-                   "lib/lexCheck2006api.jar"
-                   "lib/lvg2001api.jar"]
+                   "lib/lexAccess2016dist.jar"
+                   "lib/lexCheck2016api.jar"
+                   "lib/lvg2016api.jar"]
   :repl-options {:port 12345})
