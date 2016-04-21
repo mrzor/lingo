@@ -50,6 +50,12 @@
 (defmethod modify :prepophrase [phrase object]
   (if (:* phrase) (modify! phrase object) object))
 
+(defn- clause-like? [phrase]
+  (let [p (:+ phrase)]
+    (and
+      (sequential? p)
+      (map? (first p)))))
+
 (defn- noun [phrase factory]
   (match [phrase]
     [[determiner noun]] (snlg/factory-create-noun-phrase factory determiner noun)
@@ -70,9 +76,11 @@
 (defmethod gen :verb    [factory phrase]
   (modify phrase (snlg/factory-create-verb-phrase factory (:+ phrase))))
 (defmethod gen :subject [factory phrase]
-  (gen factory (assoc phrase :> :noun)))
+  (let [phrase-type (if (clause-like? phrase) :clause :noun)]
+    (gen factory (assoc phrase :> phrase-type))))
 (defmethod gen :object  [factory phrase]
-  (gen factory (assoc phrase :> :noun)))
+  (let [phrase-type (if (clause-like? phrase) :clause :noun)]
+    (gen factory (assoc phrase :> phrase-type))))
 (defmethod gen :prepophrase [factory phrase]
   (modify phrase (prepophrase (:+ phrase) factory)))
 
