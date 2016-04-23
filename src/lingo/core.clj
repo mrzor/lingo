@@ -58,8 +58,12 @@
 
 (defn- noun [phrase factory]
   (match [phrase]
-    [[determiner noun]] (snlg/factory-create-noun-phrase factory determiner noun)
-    [noun] (snlg/factory-create-noun-phrase factory noun)))
+    [[determiner noun]] (snlg/factory-create-noun-phrase
+                          factory
+                          (gen factory determiner)
+                          noun)
+    [noun] (snlg/factory-create-noun-phrase
+             factory noun)))
 
 (defn- prepophrase [phrase factory]
   (match [phrase]
