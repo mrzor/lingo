@@ -1,8 +1,8 @@
 (ns lingo.features
   (:import
-   (simplenlg.features DiscourseFunction Feature
-    Form Gender Inflection InterrogativeType
-    NumberAgreement Person Tense)))
+    (simplenlg.features DiscourseFunction Feature
+                        Form Gender Inflection InterrogativeType
+                        NumberAgreement Person Tense LexicalFeature)))
 
 (def ^:private forms
   (let [f-type #(Form/valueOf (name %))]
@@ -48,6 +48,12 @@
     :present (Tense/PRESENT)
     :future  (Tense/FUTURE)}])
 
+(def ^:private genders
+  [(LexicalFeature/GENDER)
+   {:masculine (Gender/MASCULINE)
+    :feminine (Gender/FEMININE)
+    :neuter (Gender/NEUTER)}])
+
 (def features
   (let [is+not {:is  true :not false}
         has+no {:has true :no  false}]
@@ -72,6 +78,7 @@
     :number numbers
     :person persons
     :tense  tenses
+    :gender genders
     :?      interrogatives}))
 
 (def feature-fns
