@@ -6,7 +6,7 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/core.match "0.2.1"]]
   :java-source-paths ["src/simplenlg"]
-  :resource-paths ["lib/simplenlg-v4.4.2.jar"
+  :resource-paths ["lib/SimpleNLG-4.4.8.jar"
                    "lib/junit-4.4.jar"
                    "lib/lexAccess2016dist.jar"
                    "lib/lexCheck2016api.jar"
