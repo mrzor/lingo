@@ -54,7 +54,7 @@
   (let [p (:+ phrase)]
     (and
       (sequential? p)
-      (map? (first p)))))
+      (every? map? p))))
 
 (defn- noun [phrase factory]
   (match [phrase]
