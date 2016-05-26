@@ -1,6 +1,7 @@
 (ns lingo.simplenlg-wrapper
   (:import (simplenlg.framework NLGElement PhraseElement NLGFactory CoordinatedPhraseElement)
-           (simplenlg.realiser.english Realiser)))
+           (simplenlg.realiser.english Realiser)
+           (simplenlg.phrasespec SPhraseSpec)))
 
 ; Most SimpleNLG functions that lingo calls are wrapped here
 ;
@@ -17,6 +18,9 @@
 ; This could probably all replaced, someday, with a far better solution.
 ; I regret polluting lingo with this, but I see no other options to help me pinpoint
 ; some bugs where a same lingo and simpleNLG test case differ in output.
+
+;
+; (set! *warn-on-reflection* true)
 
 (defn realise-sentence [^Realiser realiser ^NLGElement element]
   (.realiseSentence realiser element))
@@ -77,11 +81,11 @@
 (defn element-set-determiner [^PhraseElement element determiner]
   (.setDeterminer element determiner))
 
-(defn phrase-set-subject [phrase subject]
+(defn phrase-set-subject [^SPhraseSpec phrase subject]
   (.setSubject phrase subject))
 
-(defn phrase-set-verb-phrase [phrase verb]
+(defn phrase-set-verb-phrase [^SPhraseSpec phrase verb]
   (.setVerbPhrase phrase verb))
 
-(defn phrase-set-object [phrase object]
+(defn phrase-set-object [^SPhraseSpec phrase object]
   (.setObject phrase object))
